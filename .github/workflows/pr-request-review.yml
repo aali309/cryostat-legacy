@@ -17,7 +17,7 @@ jobs:
       - name: Set up GitHub CLI
         uses: actions/setup-gh@v2
         with:
-          gh-version: 2 # You can adjust this version if needed
+          gh-version: 2
 
       - name: Checkout code
         uses: actions/checkout@v2
