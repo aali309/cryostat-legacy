@@ -94,7 +94,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: build-test
         uses: ./.github/workflows/ci-build-image.yml
         with:
@@ -171,7 +171,7 @@ jobs:
     - name: Create markdown table
       id: md-table
       uses: petems/csv-to-md-table-action@v3.0.0
-      with: 
+      with:
         csvinput: |
           ARCH, IMAGE
           amd64, ${{ env.amd64_image }}
