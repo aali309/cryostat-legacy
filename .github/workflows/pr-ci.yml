@@ -12,7 +12,7 @@ on:
 jobs:
   check-before-build:
     runs-on: ubuntu-latest
-    if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/build_test')
+    if: github.event.issue.pull_request && (startsWith(github.event.comment.body, '/build_test') || startsWith(github.event.comment.body, '/retest'))
     permissions:
       pull-requests: write
     steps:
@@ -88,38 +88,18 @@ jobs:
 
 # Add a new step to use /retest
   retest-integration:
-    runs-on: ubuntu-latest
-    needs: [checkout-branch]
-    if: contains(github.event.comment.body, '/retest')
+    needs: [code-analysis, checkout-branch]
+    if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/retest')
     strategy:
       matrix:
         arch: [amd64, arm64]
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    # Skip image building if it's a /retest
-    - name: build-test
-      uses: ./.github/workflows/ci-build-image.yml
-      with:
-        build-arch: ${{ matrix.arch }}
-        checkout-repo: ${{ needs.checkout-branch.outputs.PR_repo }}
-        checkout-ref: ${{ needs.checkout-branch.outputs.PR_head_ref  }}
-        skip-itests: true # Skip image building for /retest
-        run-tests-only: true
-
-  # Leave a comment to indicate the /retest
-    - name: Leave Retest Comment
-      uses: actions/github-script@v6
-      with:
-        script: |
-          const commentBody = 'Retesting integration tests.';
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: commentBody
-          });
+    uses: ./.github/workflows/ci-build-image.yml
+    with:
+      build-arch: ${{ matrix.arch }}
+      checkout-repo: ${{ needs.checkout-branch.outputs.PR_repo }}
+      checkout-ref: ${{ needs.checkout-branch.outputs.PR_head_ref  }}
+      skip-itests: true # Skip image building for /retest
+      run-tests-only: true
 
 # Add a new step to leave a comment at the start of the Actions run
   start-comment:
@@ -158,7 +138,7 @@ jobs:
       continue-on-error: true
 
     - name: Leave Test Status Comment
-      if: always()  # Comment regardless of the test result ( this line is to test5)
+      if: always()  # Comment regardless of the test result
       uses: actions/github-script@v6
       with:
         script: |
