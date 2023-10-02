@@ -96,7 +96,7 @@ jobs:
       uses: actions/github-script@v6
       with:
         script: |
-          const runURL = `https://github.com/${contex.repo.owner}/${context.repo.repo}/actions/runs/${{ github.run_id }}`;
+          const runURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${{ github.run_id }}`;
           const commentBody = `Workflow started at ${new Date().toLocaleString()}. [View Actions Run](${runURL}).`;
           github.rest.issues.createComment({
             issue_number: context.issue.number,
