@@ -86,6 +86,53 @@ jobs:
       checkout-ref: ${{ needs.checkout-branch.outputs.PR_head_ref  }}
       skip-itests: ${{ matrix.arch != 'amd64' }}
 
+  # Add a new step to leave a comment at the start of the Actions run using v6 of actions/github-script
+  start-comment:
+    runs-on: ubuntu-latest
+    needs: [check-before-build]
+    if: ${{ needs.check-before-build.result == 'success' }}
+    steps:
+    - name: Leave Actions Run Comment
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const { owner, repo } = context.repo;
+          const runURL = `https://github.com/${owner}/${repo}/actions/runs/${{ github.run_id }}`;
+          const commentBody = `Workflow started at ${new Date().toLocaleString()}. [View Actions Run](${runURL}).`;
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            body: commentBody,
+          });
+
+  # Add a new step to check the test results and leave a comment
+  check-test-results:
+    runs-on: ubuntu-latest
+    needs: [build-and-test]
+    steps:
+    - name: Check Test Results
+      id: check-results
+      run: |
+        if [ $? -eq 0 ]; then
+          echo "Tests passed."
+          echo "::set-output name=test-status::success"
+        else
+          echo "Tests failed."
+          echo "::set-output name=test-status::failure"
+      continue-on-error: true
+
+    - name: Leave Test Status Comment
+      if: always()  # Comment regardless of the test result
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const { owner, repo } = context.repo;
+          const testStatus = '${{ steps.check-results.outputs.test-status }}';
+          const commentBody = `Tests status: ${testStatus} at ${new Date().toLocaleString()}.`;
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            body: commentBody,
+          });
+
   push-to-ghcr:
     runs-on: ubuntu-latest
     needs: [build-and-test, checkout-branch]
