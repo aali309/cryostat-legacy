@@ -108,7 +108,7 @@ jobs:
         skip-itests: true # Skip image building for /retest
         run-tests-only: true
 
-    # Leave a comment to indicate the /retest
+  # Leave a comment to indicate the /retest
     - name: Leave Retest Comment
       uses: actions/github-script@v6
       with:
@@ -120,7 +120,7 @@ jobs:
             repo: context.repo.repo,
             body: commentBody
           });
-          
+
 # Add a new step to leave a comment at the start of the Actions run
   start-comment:
     runs-on: ubuntu-latest
