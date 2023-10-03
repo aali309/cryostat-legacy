@@ -121,7 +121,7 @@ jobs:
             body: commentBody
           });
 
-# Add a new step to check the test results and leave a comment
+# Add a new step to check the test results and leave a comment(testing)
   check-test-results:
     runs-on: ubuntu-latest
     needs: [build-and-test, retest-integration]
