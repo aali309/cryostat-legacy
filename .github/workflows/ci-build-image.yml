@@ -41,6 +41,7 @@ jobs:
 
   build-image:
     runs-on: ubuntu-latest
+    if: startsWith(github.event.comment.body, '/build_test')
     needs: [get-pom-properties]
     steps:
     - name: Install qemu
