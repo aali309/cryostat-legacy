@@ -14,9 +14,6 @@ on:
         required: false
         type: boolean
         default: false
-      run-tests-only:
-        type: boolean
-        default: false
     outputs:
       image-version:
         description: the Cryostat application version that will be built
