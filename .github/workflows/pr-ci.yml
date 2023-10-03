@@ -76,6 +76,7 @@ jobs:
       
   build-and-test:
     needs: [code-analysis, checkout-branch]
+    if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/build_test')
     strategy:
       matrix:
         arch: [amd64, arm64]
@@ -99,7 +100,6 @@ jobs:
       checkout-repo: ${{ needs.checkout-branch.outputs.PR_repo }}
       checkout-ref: ${{ needs.checkout-branch.outputs.PR_head_ref  }}
       skip-itests: ${{ matrix.arch != 'amd64' }}
-      run-tests-only: ${{ inputs.run-tests-only }}
 
 # Add a new step to leave a comment at the start of the Actions run
   start-comment:
@@ -142,7 +142,7 @@ jobs:
       uses: actions/github-script@v6
       with:
         script: |
-          const testStatus = ${{ steps.check-results.outputs['test-status'] }};
+          const testStatus = "${{ steps.check-results.outputs['test-status'] }}";
           const currentTime = new Date().toLocaleString('en-US', { timeZone: 'America/Toronto' });
           const commentBody = `Tests status: ${testStatus} at ${currentTime}.`;
           github.rest.issues.createComment({
@@ -154,6 +154,7 @@ jobs:
 
   push-to-ghcr:
     runs-on: ubuntu-latest
+    if: startsWith(github.event.comment.body, '/build_test')
     needs: [build-and-test, checkout-branch]
     strategy:
       matrix:
