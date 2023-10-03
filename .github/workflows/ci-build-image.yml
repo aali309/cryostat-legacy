@@ -25,7 +25,6 @@ on:
 jobs:
   get-pom-properties:
     runs-on: ubuntu-latest
-    if: startsWith(github.event.comment.body, '/build_test')
     steps:
     - uses: actions/checkout@v4
       with:
