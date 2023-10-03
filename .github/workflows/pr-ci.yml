@@ -89,11 +89,8 @@ jobs:
 
 # Add a new step to use /retest
   retest-integration:
-    needs: [code-analysis, checkout-branch]
+    needs: [checkout-branch]
     if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/retest')
-    strategy:
-      matrix:
-        arch: [amd64, arm64]
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Repository
@@ -104,7 +101,7 @@ jobs:
     
     - name: Run Integration Tests
       run: |
-        POD_NAME=cryostat-itests CONTAINER_NAME=cryostat-itest ITEST_IMG_VERSION=latest bash repeated-integration-tests.bash
+        bash repeated-integration-tests.bash
     - name: Print itest logs
       if: failure()
       run: ls -1dt target/cryostat-itest-*.log | head -n1 | xargs cat
