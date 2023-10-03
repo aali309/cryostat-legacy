@@ -89,22 +89,18 @@ jobs:
 
 # Add a new step to use /retest
   retest-integration:
-    needs: [checkout-branch]
+    needs: [code-analysis, checkout-branch]
     if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/retest')
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
-      with:
-        repository: ${{ needs.checkout-branch.outputs.PR_repo }}
-        ref: ${{ needs.checkout-branch.outputs.PR_head_ref }}
-    
-    - name: Run Integration Tests
-      run: |
-        bash repeated-integration-tests.bash
-    - name: Print itest logs
-      if: failure()
-      run: ls -1dt target/cryostat-itest-*.log | head -n1 | xargs cat
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
+    uses: ./.github/workflows/ci-build-image.yml
+    with:
+      build-arch: ${{ matrix.arch }}
+      checkout-repo: ${{ needs.checkout-branch.outputs.PR_repo }}
+      checkout-ref: ${{ needs.checkout-branch.outputs.PR_head_ref  }}
+      skip-itests: ${{ matrix.arch != 'amd64' }}
+      run-tests-only: true
 
 # Add a new step to leave a comment at the start of the Actions run
   start-comment:

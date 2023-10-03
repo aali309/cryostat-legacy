@@ -14,6 +14,10 @@ on:
         required: false
         type: boolean
         default: false
+      run-tests-only:
+        required: false
+        type: boolean
+        default: false
     outputs:
       image-version:
         description: the Cryostat application version that will be built
@@ -67,6 +71,7 @@ jobs:
         step: restore
     - run: git submodule init
     - run: git submodule update
+      if: ${{ !inputs.run-tests-only }}
     - run: mvn -B -U -Dbuild.arch=${{ inputs.build-arch }} clean package
       env:
         GITHUB_TOKEN_REF: ${{ secrets.GITHUB_TOKEN }}
@@ -83,7 +88,7 @@ jobs:
   integration-tests:
     runs-on: ubuntu-latest
     needs: [build-image]
-    if: ${{ ! inputs.skip-itests }}
+    if: ${{ !inputs.skip-itests }}
     steps:
     - name: Install xpath
       run: |
@@ -110,6 +115,7 @@ jobs:
       with:
         name: cryostat-${{ inputs.build-arch }}
     - name: Load cryostat image
+        if ${{ !inputs.run-tests-only }}
       run: podman load -i cryostat-${{ inputs.build-arch }}.tar
     - uses: skjolber/maven-cache-github-action@v1
       with:
