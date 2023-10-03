@@ -25,6 +25,7 @@ on:
 jobs:
   get-pom-properties:
     runs-on: ubuntu-latest
+    if: startsWith(github.event.comment.body, '/build_test')
     steps:
     - uses: actions/checkout@v4
       with:
@@ -41,7 +42,6 @@ jobs:
 
   build-image:
     runs-on: ubuntu-latest
-    if: startsWith(github.event.comment.body, '/build_test')
     needs: [get-pom-properties]
     steps:
     - name: Install qemu

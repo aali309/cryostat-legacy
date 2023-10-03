@@ -142,7 +142,7 @@ jobs:
       uses: actions/github-script@v6
       with:
         script: |
-          const testStatus = "${{ steps.check-results.outputs['test-status'] }}";
+          const testStatus = "${{ steps.check-results.outputs.test-status }}";
           const currentTime = new Date().toLocaleString('en-US', { timeZone: 'America/Toronto' });
           const commentBody = `Tests status: ${testStatus} at ${currentTime}.`;
           github.rest.issues.createComment({
