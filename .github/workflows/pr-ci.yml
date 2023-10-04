@@ -118,7 +118,7 @@ jobs:
             body: commentBody
           });
 
-# Add a new step to check the test results and leave a comment
+# Add a new step to check the test results and leave a comment (test)
   check-test-results:
     if: needs.build-and-test.result == 'success' || needs.retest-integration.result == 'success'
     runs-on: ubuntu-latest
