@@ -28,3 +28,4 @@ jobs:
           CONTAINER_NAME=cryostat-itest
           ITEST_IMG_VERSION=latest
           bash repeated-integration-tests.bash
+#testing
