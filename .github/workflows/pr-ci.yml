@@ -131,7 +131,7 @@ jobs:
         echo "::set-output name=test-status::success"
     - name: Check Test Results
       if: failure()
-      id: check-results
+      id: check-results-failure
       run: |
         echo "At least one test has failed."
         echo "::set-output name=test-status::failure"
