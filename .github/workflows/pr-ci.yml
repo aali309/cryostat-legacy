@@ -101,7 +101,7 @@ jobs:
       checkout-ref: ${{ needs.checkout-branch.outputs.PR_head_ref  }}
       skip-itests: ${{ matrix.arch != 'amd64' }}
 
-# Add a new step to leave a comment at the start of the Actions run
+# Add a new step to leave a comment at the start of the Actions run (test)
   start-comment:
     runs-on: ubuntu-latest
     needs: [check-before-build]
