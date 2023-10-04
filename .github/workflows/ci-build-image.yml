@@ -8,7 +8,7 @@ on:
         required: false
         type: string
       build-arch:
-        required: true
+        required: false
         type: string
       skip-itests:
         required: false
