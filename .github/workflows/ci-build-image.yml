@@ -8,7 +8,7 @@ on:
         required: false
         type: string
       build-arch:
-        required: false #true it was before
+        required: true
         type: string
       skip-itests:
         required: false
@@ -42,7 +42,6 @@ jobs:
 
   build-image:
     runs-on: ubuntu-latest
-    if: ${{ !inputs.run-tests-only }}
     needs: [get-pom-properties]
     steps:
     - name: Install qemu
@@ -116,7 +115,6 @@ jobs:
       with:
         name: cryostat-${{ inputs.build-arch }}
     - name: Load cryostat image
-        if ${{ !inputs.run-tests-only }}
       run: podman load -i cryostat-${{ inputs.build-arch }}.tar
     - uses: skjolber/maven-cache-github-action@v1
       with:
