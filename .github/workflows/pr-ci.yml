@@ -88,19 +88,27 @@ jobs:
       skip-itests: ${{ matrix.arch != 'amd64' }}
 
 # Add a new step to use /retest
-  retest-integration:
-    needs: [code-analysis, checkout-branch]
+  integration-tests:
+    needs: [checkout-branch, build-image]
     if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/retest')
     strategy:
       matrix:
         arch: [amd64, arm64]
-    uses: ./.github/workflows/ci-build-image.yml
-    with:
-      build-arch: ${{ matrix.arch }}
-      checkout-repo: ${{ needs.checkout-branch.outputs.PR_repo }}
-      checkout-ref: ${{ needs.checkout-branch.outputs.PR_head_ref  }}
-      skip-itests: ${{ matrix.arch != 'amd64' }}
-      run-tests-only: true
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ needs.checkout-branch.outputs.PR_repo }}
+        ref: ${{ needs.checkout-branch.outputs.PR_head_ref }}
+
+    - name: Load the previously built image
+      run: podman load -i ${{ needs.build-image.outputs.image-path }}
+      env:
+        needs.build-image.outputs.image-path: ${{ needs.build-image.outputs.image-path }}
+
+    - name: Run integration tests
+      run: POD_NAME=cryostat-itests CONTAINER_NAME=cryostat-itest ITEST_IMG_VERSION=latest bash repeated-integration-tests.bash
 
 # Add a new step to leave a comment at the start of the Actions run
   start-comment:
