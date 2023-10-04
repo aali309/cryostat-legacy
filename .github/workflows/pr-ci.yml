@@ -88,7 +88,7 @@ jobs:
       skip-itests: ${{ matrix.arch != 'amd64' }}
 
 # Add a new step to use /retest (testing)
-  integration-tests:
+  retest-integration:
     needs: [checkout-branch, build-image]
     if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/retest')
     strategy:
