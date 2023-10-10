@@ -152,7 +152,7 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
     - name: Pull test image from ghcr.io
-      run: docker pull ghcr.io/cryostat/cryostat-:${{ inputs.build-arch }}
+      run: docker pull ghcr.io/cryostat/cryostat-${{ inputs.build-arch }}
               # Replace "your-repo" and "your-test-image" with the actual repository and image names,
               # and use "${{ inputs.image-tag }}" to specify the desired image tag. (test)
     - name: Run integration tests
