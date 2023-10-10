@@ -122,7 +122,7 @@ jobs:
             body: commentBody
           });
 
-# Add a new step to check the test results and leave a comment (test)
+# Add a new step to check the test results and leave a comment
   check-test-results:
     if: ${{ needs.build-and-test.result == 'success' || needs.retest-integration.result == 'success' }}
     runs-on: ubuntu-latest
