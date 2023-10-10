@@ -153,7 +153,7 @@ jobs:
         distribution: 'temurin'
     - name: Pull test image from ghcr.io
       run: |
-        echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u <aali309> --password-stdin
+        echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u aali309 --password-stdin
         docker pull ghcr.io/cryostat/cryostat-${{ inputs.build-arch }}
     - name: Run integration tests
       run: |
