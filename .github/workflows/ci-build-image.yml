@@ -115,6 +115,9 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
+    - uses: actions/download-artifact@v3
+      with:
+        name: cryostat-${{ inputs.build-arch }}
     - name: Load cryostat image
       run: podman load -i cryostat-${{ inputs.build-arch }}.tar
     - uses: skjolber/maven-cache-github-action@v1
@@ -134,7 +137,7 @@ jobs:
 
   retest-integration-test:
     runs-on: ubuntu-latest
-    if: ${{ inputs.run-tests-only }}
+    if: ${{ inputs.run-tests-only && !inputs.skip-itests}}
     steps:
       - name: Install xpath
         run: |
@@ -157,25 +160,19 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: Download Cryostat Image Artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: cryostat-${{ inputs.build-arch }}
-      - name: Load Cryostat Image
-        run: podman load -i ./cryostat-${{ inputs.build-arch }}.tar
+      - name: Load cryostat image
+        run: podman load -i cryostat-${{ inputs.build-arch }}.tar
       - uses: skjolber/maven-cache-github-action@v1
         with:
           step: restore
-      - name: Run integration tests with the loaded image
-        run: |
-          POD_NAME=cryostat-itests
-          CONTAINER_NAME=cryostat-itest
-          ITEST_IMG_VERSION=latest
-          bash repeated-integration-tests.bash
+      - name: Run integration tests
+        run: POD_NAME=cryostat-itests CONTAINER_NAME=cryostat-itest ITEST_IMG_VERSION=latest bash repeated-integration-tests.bash
       - name: Print itest logs
         if: failure()
         run: ls -1dt target/cryostat-itest-*.log | head -n1 | xargs cat
       - name: Print itest container logs
         if: failure()
         run: ls -1dt target/cryostat-*.server.log | head -n1 | xargs cat
-
+      - uses: skjolber/maven-cache-github-action@v1
+        with:
+          step: save
