@@ -8,6 +8,9 @@ on:
   issue_comment:
     types:
       - created
+  pull_request_target:
+    types:
+      - opened
 
 jobs:
   check-before-build:
@@ -87,21 +90,6 @@ jobs:
       checkout-ref: ${{ needs.checkout-branch.outputs.PR_head_ref  }}
       skip-itests: ${{ matrix.arch != 'amd64' }}
 
-# Add a new step to use /retest
-  retest-integration:
-    needs: [checkout-branch]
-    if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/retest')
-    strategy:
-      matrix:
-        arch: [amd64, arm64]
-    uses: ./.github/workflows/ci-build-image.yml
-    with:
-      build-arch: ${{ matrix.arch }}
-      checkout-repo: ${{ needs.checkout-branch.outputs.PR_repo }}
-      checkout-ref: ${{ needs.checkout-branch.outputs.PR_head_ref  }}
-      skip-itests: ${{ matrix.arch != 'amd64' }}
-      run-tests-only: true
-
 # Add a new step to leave a comment at the start of the Actions run
   start-comment:
     runs-on: ubuntu-latest
@@ -115,43 +103,6 @@ jobs:
           const runURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${{ github.run_id }}`;
           const currentTime = new Date().toLocaleString('en-US', { timeZone: 'America/Toronto' });
           const commentBody = `Workflow started at ${currentTime}. [View Actions Run](${runURL}).`;
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: commentBody
-          });
-
-# Add a new step to check the test results and leave a comment
-  check-test-results:
-    if: ${{ needs.build-and-test.result == 'success' || needs.retest-integration.result == 'success' }}
-    runs-on: ubuntu-latest
-    needs: [build-and-test, retest-integration]
-    steps:
-    - name: Check Test Results
-      id: check-results
-      run: |
-        echo "All tests passed."
-        echo "::set-output name=test-status::success"
-    - name: Check Test Results
-      if: failure()
-      id: check-results-failure
-      run: |
-        echo "At least one test has failed."
-        echo "::set-output name=test-status::failure"
-      continue-on-error: true
-
-  leave-test-status-comment:
-    if: ${{ needs.check-test-results.result == 'success' }}
-    runs-on: ubuntu-latest
-    needs: [check-test-results]
-    steps:
-    - uses: actions/github-script@v6
-      with:
-        script: |
-          const testStatus = "${{ needs.run-tests.outputs.check-results.outputs.test-status }}";
-          const currentTime = new Date().toLocaleString('en-US', { timeZone: 'America/Toronto' });
-          const commentBody = `Tests status: ${testStatus} at ${currentTime}.`;
           github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
@@ -199,6 +150,37 @@ jobs:
       if: ${{ matrix.arch == 'arm64' }}
       id: arm64_image
       run: echo "image=${{ steps.push-to-ghcr.outputs.registry-path }}" >> "$GITHUB_OUTPUT"
+
+
+# Add a new step to use /retest
+  retest-integration:
+    runs-on: ubuntu-latest
+    needs: [ push-to-ghcr, checkout-branch ]
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        repository: ${{ github.repository_owner }}
+        ref: main
+        submodules: true
+        fetch-depth: 0
+    - uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
+    - name: Pull cryostat image
+      run: podman pull ghcr.io/${{ github.repository_owner }}/cryostat:pr-${{ github.event.number }}-${{ github.event.pull_request.head.sha }}-linux-${{ matrix.arch }}
+    - name: Run integration tests
+      run: POD_NAME=cryostat-itests CONTAINER_NAME=cryostat-itest ITEST_IMG_VERSION=latest bash repeated-integration-tests.bash
+    - name: Print itest logs
+      if: failure()
+      run: ls -1dt target/cryostat-itest-*.log | head -n1 | xargs cat
+    - name: Print itest container logs
+      if: failure()
+      run: ls -1dt target/cryostat-*.server.log | head -n1 | xargs cat
 
   comment-image:
     runs-on: ubuntu-latest
