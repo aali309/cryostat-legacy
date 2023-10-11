@@ -175,3 +175,4 @@ jobs:
         if: failure()
         run: ls -1dt target/cryostat-*.server.log | head -n1 | xargs cat
 
+#test
