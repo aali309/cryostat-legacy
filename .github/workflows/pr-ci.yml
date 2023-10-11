@@ -112,7 +112,6 @@ jobs:
 
   push-to-ghcr:
     runs-on: ubuntu-latest
-    if: startsWith(github.event.comment.body, '/build_test')
     needs: [build-and-test, checkout-branch]
     strategy:
       matrix:
