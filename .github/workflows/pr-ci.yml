@@ -155,6 +155,7 @@ jobs:
   retest-integration:
     runs-on: ubuntu-latest
     needs: [ push-to-ghcr, checkout-branch ]
+    if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/retest')
     strategy:
       matrix:
         arch: [amd64, arm64]
