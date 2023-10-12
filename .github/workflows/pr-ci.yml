@@ -90,7 +90,7 @@ jobs:
       checkout-ref: ${{ needs.checkout-branch.outputs.PR_head_ref  }}
       skip-itests: ${{ matrix.arch != 'amd64' }}
 
-  comment-test-resuts:
+  comment-test-resuts: #test
     runs-on: ubuntu-latest
     if: github.event.issue.pull_request && (contains(github.event.comment.body, '/build_test') || contains(github.event.comment.body, '/retest'))
     needs: [build-and-test, retest-integration]
@@ -111,7 +111,7 @@ jobs:
           body: commentBody
           });
 
-  # Add a new step to use /retest (test)
+  # Add a new step to use /retest
   retest-integration:
     needs: [code-analysis, checkout-branch]
     if: contains(github.event.comment.body, '/retest')
