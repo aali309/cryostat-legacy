@@ -137,7 +137,7 @@ jobs:
     - uses: skjolber/maven-cache-github-action@v1
       with:
         step: save
-#test
+
   retest-integration-tests:
     runs-on: ubuntu-latest
     if: ${{ !inputs.skip-itests && inputs.run-tests-only }}
