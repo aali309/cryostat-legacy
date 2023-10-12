@@ -90,7 +90,7 @@ jobs:
       checkout-ref: ${{ needs.checkout-branch.outputs.PR_head_ref  }}
       skip-itests: ${{ matrix.arch != 'amd64' }}
 
-  # Add a new step to use /retest
+  # Add a new step to use /retest (test)
   retest-integration:
     needs: [code-analysis, checkout-branch]
     if: contains(github.event.comment.body, '/retest')
