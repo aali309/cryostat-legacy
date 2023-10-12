@@ -22,6 +22,9 @@ on:
       image-version:
         description: the Cryostat application version that will be built
         value: ${{ jobs.get-pom-properties.outputs.image-version }}
+  pull_request_target:
+    types:
+      - opened
 
 permissions:
   contents: read
@@ -137,7 +140,7 @@ jobs:
 #test
   retest-integration-tests:
     runs-on: ubuntu-latest
-    if: ${{ !inputs.skip-itests }}
+    if: ${{ !inputs.skip-itests && inputs.run-tests-only }}
     steps:
     - name: Install xpath
       run: |
@@ -151,7 +154,7 @@ jobs:
         sudo apt-get install -y qemu-user-static
     - uses: actions/checkout@v4
       with:
-        repository: ${{ inputs.checkout-repo }}
+        repository: ${{ github.repository_owner }}/cryostat
         ref: ${{ inputs.checkout-ref }}
         submodules: true
         fetch-depth: 0
@@ -160,7 +163,7 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
     - name: Pull cryostat image
-      run: podman pull ghcr.io/${{ github.repository_owner }}/cryostat:pr-${{ github.event.number }}-${{ github.event.pull_request.head.sha }}-linux-${{ inputs.build-arch }}
+      run: podman pull ghcr.io/${{ github.repository_owner }}/cryostat:pr-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}-linux-${{ inputs.build-arch }}
     - name: Run integration tests
       run: POD_NAME=cryostat-itests CONTAINER_NAME=cryostat-itest ITEST_IMG_VERSION=latest bash repeated-integration-tests.bash
     - name: Print itest logs
