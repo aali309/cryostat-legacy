@@ -18,13 +18,16 @@ on:
         required: false
         type: boolean
         default: false
+      pr-number:
+        required: false
+        type: string
+      sha-value:
+        required: false
+        type: string
     outputs:
       image-version:
         description: the Cryostat application version that will be built
         value: ${{ jobs.get-pom-properties.outputs.image-version }}
-  pull_request_target:
-    types:
-      - opened
 
 permissions:
   contents: read
@@ -163,7 +166,7 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
     - name: Pull cryostat image
-      run: podman pull ghcr.io/${{ github.repository_owner }}/cryostat:pr-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}-linux-${{ inputs.build-arch }}
+      run: podman pull ghcr.io/${{ github.repository_owner }}/cryostat:pr-${{ inputs.pr-number }}-${{ inputs.sha-value }}-linux-${{ inputs.build-arch }}
     - name: Run integration tests
       run: POD_NAME=cryostat-itests CONTAINER_NAME=cryostat-itest ITEST_IMG_VERSION=latest bash repeated-integration-tests.bash
     - name: Print itest logs
