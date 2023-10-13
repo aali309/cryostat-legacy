@@ -152,7 +152,7 @@ jobs:
     needs: [retest-integration]
     steps:
     - name: check retest status
-      id: retest-status
+      id: retest-integration-status
       run: echo ::set-output name=exit_code::$(echo $?)
     - name: Leave Actions Run Comment
       uses: actions/github-script@v6
@@ -161,7 +161,7 @@ jobs:
         script: |
           const runURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${{ github.run_id }}`;
           const name = '${{ github.workflow   }}';
-          const retestExitCode = '${{ steps.retest-status.outputs.exit_code }}';
+          const retestExitCode = '${{ steps.retest-integration-status.outputs.exit_code }}';
           const commentBody = `${name}: ${retestExitCode === '0' ? 'All tests pass ✅' : 'At least one test failed ❌'}. \n[View Actions Run](${runURL}).`;
           github.rest.issues.createComment({
             issue_number: context.issue.number,
