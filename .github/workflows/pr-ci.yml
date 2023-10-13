@@ -126,6 +126,7 @@ jobs:
   
   build-and-test-results: #test
     runs-on: ubuntu-latest
+    needs: [build-and-test]
     steps:
     - name: check build and test status
       id: build-and-test-status
@@ -148,6 +149,7 @@ jobs:
   
   retest-integration-results:
     runs-on: ubuntu-latest
+    needs: [retest-integration]
     steps:
     - name: check retest status
       id: retest-status
