@@ -124,7 +124,7 @@ jobs:
             body: commentBody
           });
   
-  build-and-test-results: #test
+  build-and-test-results: #testing
     runs-on: ubuntu-latest
     needs: [build-and-test]
     steps:
