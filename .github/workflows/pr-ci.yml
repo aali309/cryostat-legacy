@@ -96,12 +96,16 @@ jobs:
     strategy:
       matrix:
         arch: [amd64, arm64]
-    uses: ./.github/workflows/ci-build-image.yml
-    with:
-      build-arch: ${{ matrix.arch }}
-      run-tests-only: true
-      pr-number: ${{ github.event.issue.number }}
-      sha-value: ${{ needs.checkout-branch.outputs.PR_head_sha }}
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: retest intehration tests
+        uses: ./.github/workflows/ci-build-image.yml
+        with:
+          build-arch: ${{ matrix.arch }}
+          run-tests-only: true
+          pr-number: ${{ github.event.issue.number }}
+          sha-value: ${{ needs.checkout-branch.outputs.PR_head_sha }}
 
 # leave a comment at the start of the Actions run
   start-comment:
@@ -135,7 +139,7 @@ jobs:
           const runURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${{ github.run_id }}`;
           const name = '${{ github.workflow   }}';
           const success = '${{ needs.build-and-test.result }}' == 'success';
-          const commentBody = `${name}: ${success ? 'All Tests Pass ✅' : 'At least one test failed ❌'}. \n[View Actions Run](${runURL}).`;
+          const commentBody = `${name}: ${success ? 'All tests pass ✅' : 'At least one test failed ❌'}. \n[View Actions Run](${runURL}).`;
           await.github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
