@@ -83,12 +83,16 @@ jobs:
     strategy:
       matrix:
         arch: [amd64, arm64]
-    uses: ./.github/workflows/ci-build-image.yml
-    with:
-      build-arch: ${{ matrix.arch }}
-      checkout-repo: ${{ needs.checkout-branch.outputs.PR_repo }}
-      checkout-ref: ${{ needs.checkout-branch.outputs.PR_head_ref  }}
-      skip-itests: ${{ matrix.arch != 'amd64' }}
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: build and test
+        uses: ./.github/workflows/ci-build-image.yml
+        with:
+          build-arch: ${{ matrix.arch }}
+          checkout-repo: ${{ needs.checkout-branch.outputs.PR_repo }}
+          checkout-ref: ${{ needs.checkout-branch.outputs.PR_head_ref  }}
+          skip-itests: ${{ matrix.arch != 'amd64' }}
 
   retest-integration: #test
     needs: [code-analysis, checkout-branch]
@@ -99,7 +103,7 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - name: retest intehration tests
+      - name: retest integration tests
         uses: ./.github/workflows/ci-build-image.yml
         with:
           build-arch: ${{ matrix.arch }}
@@ -139,8 +143,8 @@ jobs:
           const runURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${{ github.run_id }}`;
           const name = '${{ github.workflow   }}';
           const success = '${{ needs.build-and-test.result }}' == 'success';
-          const commentBody = `${name}: ${success ? 'All tests pass ✅' : 'At least one test failed ❌'}. \n[View Actions Run](${runURL}).`;
-          await.github.rest.issues.createComment({
+          const commentBody = `${name}: ${success ? 'All tests pass ✅' : 'At least one test failed ❌'}\n[View Actions Run](${runURL}).`;
+          github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,
@@ -159,8 +163,8 @@ jobs:
           const runURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${{ github.run_id }}`;
           const name = '${{ github.workflow   }}';
           const success = '${{ needs.retest-integration.result }}' == 'success';
-          const commentBody = `${name}: ${success ? 'All Tests Pass ✅' : 'At least one test failed ❌'}. \n[View Actions Run](${runURL}).`;
-          await.github.rest.issues.createComment({
+          const commentBody = `${name}: ${success ? 'All tests pass ✅' : 'At least one test failed ❌'}\n[View Actions Run](${runURL}).`;
+          github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,
