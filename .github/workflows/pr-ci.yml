@@ -136,7 +136,7 @@ jobs:
           const name = '${{ github.workflow   }}';
           const success = '${{ needs.build-and-test.result }}' == 'success';
           const commentBody = `${name}: ${success ? 'All Tests Pass ✅' : 'At least one test failed ❌'}. \n[View Actions Run](${runURL}).`;
-          github.rest.issues.createComment({
+          await github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,
@@ -156,7 +156,7 @@ jobs:
           const name = '${{ github.workflow   }}';
           const success = '${{ needs.retest-integration.result }}' == 'success';
           const commentBody = `${name}: ${success ? 'All Tests Pass ✅' : 'At least one test failed ❌'}. \n[View Actions Run](${runURL}).`;
-          github.rest.issues.createComment({
+          await.github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,
