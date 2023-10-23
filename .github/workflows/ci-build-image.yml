@@ -76,7 +76,7 @@ jobs:
       uses: s4u/maven-settings-action@v2
       with:
         servers: '[{"id": "github", "username": "dummy", "password": "${env.GITHUB_TOKEN_REF}"}]'
-        githubServer: false
+        githubServer: true
     - uses: skjolber/maven-cache-github-action@v1
       with:
         step: restore
@@ -142,7 +142,7 @@ jobs:
       with:
         step: save
 
-  retest-integration-tests:
+  retest-integration-tests: #testing
     runs-on: ubuntu-latest
     if: ${{ !inputs.skip-itests && inputs.run-tests-only && inputs.pr-number != '' && inputs.sha-value != '' }}
     steps:
@@ -170,7 +170,7 @@ jobs:
       uses: s4u/maven-settings-action@v2
       with:
         servers: '[{"id": "github", "username": "dummy", "password": "${env.GITHUB_TOKEN_REF}"}]'
-        githubServer: false
+        githubServer: true
     - name: Pull cryostat image
       run: podman pull ghcr.io/${{ github.repository_owner }}/cryostat:pr-${{ inputs.pr-number }}-${{ inputs.sha-value }}-linux-${{ inputs.build-arch }}
     - name: Run integration tests
