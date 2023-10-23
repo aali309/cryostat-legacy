@@ -12,11 +12,11 @@ on:
 jobs:
   check-before-build:
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'cryostatio' && github.event.issue.pull_request && startsWith(github.event.comment.body, '/build_test')
+    if: github.event.issue.pull_request && (startsWith(github.event.comment.body, '/build_test') || startsWith(github.event.comment.body, '/retest'))
     permissions:
       pull-requests: write
     steps:
-    - name: Fail if needs-triage label applied 
+    - name: Fail if needs-triage label applied
       if: ${{ contains(github.event.issue.labels.*.name, 'needs-triage') }}
       run: exit 1
     - name: Show warning if permission is denied
@@ -43,12 +43,12 @@ jobs:
               repo,
               comment_id: context.payload.comment.id,
               content: "+1",
-            });  
+            });
 
-  checkout-branch: 
+  checkout-branch:
     runs-on: ubuntu-latest
     needs: [check-before-build]
-    outputs: 
+    outputs:
       PR_head_ref: ${{ fromJSON(steps.comment-branch.outputs.result).ref }}
       PR_head_sha: ${{ fromJSON(steps.comment-branch.outputs.result).sha }}
       PR_num: ${{ fromJSON(steps.comment-branch.outputs.result).num }}
@@ -76,6 +76,7 @@ jobs:
       
   build-and-test:
     needs: [code-analysis, checkout-branch]
+    if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/build_test')
     strategy:
       matrix:
         arch: [amd64, arm64]
@@ -86,13 +87,80 @@ jobs:
       checkout-ref: ${{ needs.checkout-branch.outputs.PR_head_ref  }}
       skip-itests: ${{ matrix.arch != 'amd64' }}
 
+# Add a new step to use /retest
+  retest-integration:
+    needs: [code-analysis, checkout-branch]
+    if: contains(github.event.comment.body, '/retest')
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
+    uses: ./.github/workflows/ci-build-image.yml
+    with:
+      build-arch: ${{ matrix.arch }}
+      run-tests-only: true
+      pr-number: ${{ github.event.issue.number }}
+      sha-value: ${{ needs.checkout-branch.outputs.PR_head_sha }}
+
+  start-comment:
+    runs-on: ubuntu-latest
+    needs: [check-before-build]
+    steps:
+    - name: Leave Actions Run Comment
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const runURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${{ github.run_id }}`;
+          const currentTime = new Date().toLocaleString('en-US', { timeZone: 'America/Toronto' });
+          const commentBody = `Workflow started at ${currentTime}. [View Actions Run](${runURL}).`;
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: commentBody
+          });
+
+  build-and-test-pass:
+    runs-on: ubuntu-latest
+    needs: [build-and-test]
+    steps:
+    - name: Leave Actions Run Comment
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const runURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${{ github.run_id }}`;
+          const commentBody = `build-and-test: All tests pass ✅. \n[View Actions Run](${runURL}).`;
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: commentBody
+            });
+          
+  retest-integration-pass:
+    runs-on: ubuntu-latest
+    needs: [retest-integration]
+    steps:
+    - name: Leave Actions Run Comment
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const runURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${{ github.run_id }}`;
+          const commentBody = `retest Integration: All tests pass ✅. \n[View Actions Run](${runURL}).`;
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: commentBody
+            });
+
   push-to-ghcr:
     runs-on: ubuntu-latest
+    if: startsWith(github.event.comment.body, '/build_test')
     needs: [build-and-test, checkout-branch]
     strategy:
       matrix:
         arch: [amd64, arm64]
-    outputs: 
+    outputs:
       amd64_image: ${{ steps.amd64_image.outputs.image }}
       arm64_image: ${{ steps.arm64_image.outputs.image }}
     env:
@@ -128,6 +196,7 @@ jobs:
 
   comment-image:
     runs-on: ubuntu-latest
+    if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/build_test')
     needs: [push-to-ghcr]
     env:
       amd64_image: ${{ needs.push-to-ghcr.outputs.amd64_image }}
@@ -138,7 +207,7 @@ jobs:
     - name: Create markdown table
       id: md-table
       uses: petems/csv-to-md-table-action@v3.0.0
-      with: 
+      with:
         csvinput: |
           ARCH, IMAGE
           amd64, ${{ env.amd64_image }}
@@ -150,7 +219,7 @@ jobs:
 
           To run smoketest:
           ```
-          # amd64          
+          # amd64
           CRYOSTAT_IMAGE=${{ env.amd64_image }} sh smoketest.sh
 
           # or arm64
