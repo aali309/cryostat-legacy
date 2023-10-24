@@ -60,6 +60,8 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
     - name: Pull cryostat image
       run: podman pull ghcr.io/${{ github.repository_owner }}/cryostat:pr-${{ inputs.pr-number }}-${{ inputs.sha-value }}-linux-${{ inputs.build-arch }}
+    - name: retag image as quay
+      run: podman tag ghcr.io/${{ github.repository_owner }}/cryostat:pr-${{ inputs.pr-number }}-${{ inputs.sha-value }}-linux-${{ inputs.build-arch}} quay.io/cryostat/cryostat
     - name: Run integration tests
       run: POD_NAME=cryostat-itests CONTAINER_NAME=cryostat-itest ITEST_IMG_VERSION=latest bash repeated-integration-tests.bash
       env:
