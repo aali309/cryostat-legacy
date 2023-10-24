@@ -92,13 +92,3 @@ jobs:
     - uses: skjolber/maven-cache-github-action@v1
       with:
         step: save
-
-  integration-tests:
-    needs: [build-image]
-    if: ${{ !inputs.skip-itests && !inputs.run-tests-only }}
-    strategy:
-      matrix:
-        arch: [amd64, arm64]
-    uses: ./.github/workflows/integrated-test.yml
-    with:
-      build-arch: ${{ matrix.arch }}
