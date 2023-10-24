@@ -28,7 +28,7 @@ permissions:
   packages: read
 
 jobs:
-  integration-tests: #testing
+  integration-tests: #test
     runs-on: ubuntu-latest
     if: ${{ !inputs.skip-itests }}
     steps:
