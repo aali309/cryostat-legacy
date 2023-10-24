@@ -10,10 +10,6 @@ on:
       build-arch:
         required: true
         type: string
-      skip-itests:
-        required: false
-        type: boolean
-        default: false
       run-tests-only:
         required: false
         type: boolean

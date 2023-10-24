@@ -13,11 +13,15 @@ on:
         required: true
         type: string
       pr-number:
-          required: false
-          type: string
+        required: false
+        type: string
       sha-value:
-          required: false
-          type: string
+        required: false
+        type: string
+      skip-itests:
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -25,8 +29,9 @@ permissions:
 
 
 jobs:
-  integration-tests: #testing
+  integration-tests: #test
     runs-on: ubuntu-latest
+    if: ${{ !inputs.skip-itests }}
     steps:
     - name: Install xpath
       run: |
