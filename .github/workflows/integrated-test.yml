@@ -25,10 +25,8 @@ permissions:
 
 
 jobs:
-  retest-integration-tests: #testing
+  retest-integration-tests: #test
     runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     permissions:
       pull-requests: write
     steps:
@@ -55,12 +53,19 @@ jobs:
     - name: maven-settings
       uses: s4u/maven-settings-action@v2
       with:
-        servers: '[{"id": "github", "username": "dummy", "password": "${{ env.GITHUB_TOKEN }}"}]'
         githubServer: true
+    - name: ghcr login
+      uses: redhat-actions/podman-login@v1
+      with:
+        registry: ghcr.io/${{ github.repository_owner }}
+        username: ${{ github.event.comment.user.login }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     - name: Pull cryostat image
       run: podman pull ghcr.io/${{ github.repository_owner }}/cryostat:pr-${{ inputs.pr-number }}-${{ inputs.sha-value }}-linux-${{ inputs.build-arch }}
     - name: Run integration tests
       run: POD_NAME=cryostat-itests CONTAINER_NAME=cryostat-itest ITEST_IMG_VERSION=latest bash repeated-integration-tests.bash
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Print itest logs
       if: failure()
       run: ls -1dt target/cryostat-itest-*.log | head -n1 | xargs cat
