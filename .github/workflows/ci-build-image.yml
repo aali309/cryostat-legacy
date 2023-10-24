@@ -18,12 +18,6 @@ on:
         required: false
         type: boolean
         default: false
-      pr-number:
-          required: false
-          type: string
-      sha-value:
-          required: false
-          type: string
     outputs:
       image-version:
         description: the Cryostat application version that will be built
@@ -52,6 +46,10 @@ jobs:
 
   build-image:
     runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      pull-requests: write
     if: ${{ !inputs.run-tests-only }}
     needs: [get-pom-properties]
     steps:
@@ -75,7 +73,7 @@ jobs:
     - name: maven-settings
       uses: s4u/maven-settings-action@v2
       with:
-        servers: '[{"id": "github", "username": "dummy", "password": "${env.GITHUB_TOKEN_REF}"}]'
+        servers: '[{"id": "github", "username": "dummy", "password": "${env.GITHUB_TOKEN}"}]'
         githubServer: true
     - uses: skjolber/maven-cache-github-action@v1
       with:
@@ -141,45 +139,4 @@ jobs:
     - uses: skjolber/maven-cache-github-action@v1
       with:
         step: save
-
-  retest-integration-tests: #test
-    runs-on: ubuntu-latest
-    if: ${{ !inputs.skip-itests && inputs.run-tests-only && inputs.pr-number != '' && inputs.sha-value != '' }}
-    steps:
-    - name: Install xpath
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libxml-xpath-perl
-    - name: Install qemu
-      if: ${{ inputs.build-arch != 'amd64' }}
-      continue-on-error: true
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y qemu-user-static
-    - uses: actions/checkout@v4
-      with:
-          repository: ${{ github.repository_owner }}/cryostat
-          ref: ${{ inputs.checkout-ref }}
-          submodules: true
-          fetch-depth: 0
-    - uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-    - name: maven-settings
-      uses: s4u/maven-settings-action@v2
-      with:
-        servers: '[{"id": "github", "username": "dummy", "password": "${env.GITHUB_TOKEN_REF}"}]'
-        githubServer: true
-    - name: Pull cryostat image
-      run: podman pull ghcr.io/${{ github.repository_owner }}/cryostat:pr-${{ inputs.pr-number }}-${{ inputs.sha-value }}-linux-${{ inputs.build-arch }}
-    - name: Run integration tests
-      run: POD_NAME=cryostat-itests CONTAINER_NAME=cryostat-itest ITEST_IMG_VERSION=latest bash repeated-integration-tests.bash
-    - name: Print itest logs
-      if: failure()
-      run: ls -1dt target/cryostat-itest-*.log | head -n1 | xargs cat
-    - name: Print itest container logs
-      if: failure()
-      run: ls -1dt target/cryostat-*.server.log | head -n1 | xargs cat
-      
 

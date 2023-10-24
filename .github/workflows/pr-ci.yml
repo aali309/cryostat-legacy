@@ -89,15 +89,14 @@ jobs:
 
 # Add a new step to use /retest
   retest-integration:
-    needs: [code-analysis, checkout-branch]
+    needs: [checkout-branch]
     if: contains(github.event.comment.body, '/retest')
     strategy:
       matrix:
         arch: [amd64, arm64]
-    uses: ./.github/workflows/ci-build-image.yml
+    uses: ./.github/workflows/retest-integrated-test.yml
     with:
       build-arch: ${{ matrix.arch }}
-      run-tests-only: true
       pr-number: ${{ github.event.issue.number }}
       sha-value: ${{ needs.checkout-branch.outputs.PR_head_sha }}
 
