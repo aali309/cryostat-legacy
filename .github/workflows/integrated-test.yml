@@ -25,10 +25,8 @@ permissions:
 
 
 jobs:
-  retest-integration-tests: #test
+  integration-tests: #testing
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
     steps:
     - name: Install xpath
       run: |
