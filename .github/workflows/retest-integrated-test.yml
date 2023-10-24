@@ -55,7 +55,7 @@ jobs:
     - name: maven-settings
       uses: s4u/maven-settings-action@v2
       with:
-        servers: '[{"id": "github", "username": "${{ github.event.comment.user.login }}", "password": "${{ env.GITHUB_TOKEN }}"}]'
+        servers: '[{"id": "github", "username": "dummy", "password": "${{ env.GITHUB_TOKEN }}"}]'
         githubServer: true
     - name: Pull cryostat image
       run: podman pull ghcr.io/${{ github.repository_owner }}/cryostat:pr-${{ inputs.pr-number }}-${{ inputs.sha-value }}-linux-${{ inputs.build-arch }}
