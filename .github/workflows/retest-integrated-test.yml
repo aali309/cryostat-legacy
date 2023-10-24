@@ -25,7 +25,7 @@ permissions:
 
 
 jobs:
-  retest-integration-tests: #test
+  retest-integration-tests: #testing
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
