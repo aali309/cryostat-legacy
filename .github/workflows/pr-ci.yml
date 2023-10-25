@@ -184,8 +184,8 @@ jobs:
     uses: ./.github/workflows/integrated-test.yml
     with:
       build-arch: ${{ matrix.arch }}
-      checkout-repo: ${{ needs.checkout-branch.outputs.PR_repo }}
-      checkout-ref: ${{ needs.checkout-branch.outputs.PR_head_ref  }}
+      pr-number: ${{ github.event.issue.number }}
+      sha-value: ${{ needs.checkout-branch.outputs.PR_head_sha }}
       skip-itests: ${{ matrix.arch == 'arm64' }}
   
   retest-integration:
@@ -197,8 +197,8 @@ jobs:
     uses: ./.github/workflows/integrated-test.yml
     with:
       build-arch: ${{ matrix.arch }}
-      checkout-repo: ${{ needs.checkout-branch.outputs.PR_repo }}
-      checkout-ref: ${{ needs.checkout-branch.outputs.PR_head_ref  }}
+      pr-number: ${{ github.event.issue.number }}
+      sha-value: ${{ needs.checkout-branch.outputs.PR_head_sha }}
       skip-itests: ${{ matrix.arch == 'arm64' }}
       
   integration-test-pass:
