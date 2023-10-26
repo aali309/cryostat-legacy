@@ -75,20 +75,3 @@ jobs:
     - name: Print itest container logs
       if: failure()
       run: ls -1dt target/cryostat-*.server.log | head -n1 | xargs catyea
-    - name: Add workflow result as comment on PR
-      uses: actions/github-script@v6
-      if: always()
-      with:
-          script: |
-            const name = '${{ github.workflow	}}';
-            const url = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${{ github.run_id }}`;
-            const success = '${{ job.status }}' === 'success';
-            const body = `${name}: ${success ? 'succeeded ✅' : 'failed ❌'}\n${url}`;
-
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: body
-            })
-#test
