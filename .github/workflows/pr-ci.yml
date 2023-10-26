@@ -250,7 +250,7 @@ jobs:
             body: commentBody
             });
 
-  comment-retest-integration-fail:
+  comment-retest-integration-fail: #testing
     if: (always() && contains(needs.*.result, 'failure'))
     needs: [retest-integration]
     runs-on: ubuntu-latest
