@@ -180,26 +180,24 @@ jobs:
     needs: [checkout-branch, push-to-ghcr]
     strategy:
       matrix:
-        arch: [amd64, arm64]
+        arch: [amd64]
     uses: ./.github/workflows/integrated-test.yml
     with:
       build-arch: ${{ matrix.arch }}
       pr-number: ${{ github.event.issue.number }}
       sha-value: ${{ needs.checkout-branch.outputs.PR_head_sha }}
-      skip-itests: ${{ matrix.arch == 'arm64' }}
-  
+    
   retest-integration:
     needs: [checkout-branch]
     if: contains(github.event.comment.body, '/retest')
     strategy:
       matrix:
-        arch: [amd64, arm64]
+        arch: [amd64]
     uses: ./.github/workflows/integrated-test.yml
     with:
       build-arch: ${{ matrix.arch }}
       pr-number: ${{ github.event.issue.number }}
       sha-value: ${{ needs.checkout-branch.outputs.PR_head_sha }}
-      skip-itests: ${{ matrix.arch == 'arm64' }}
       
   integration-test-pass:
     runs-on: ubuntu-latest
