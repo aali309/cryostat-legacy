@@ -45,7 +45,7 @@ jobs:
       with:
           repository: ${{ inputs.checkout-repo }}
           ref: ${{ inputs.checkout-ref }}
-          submodules: true #testing
+          submodules: true
           fetch-depth: 0
     - uses: actions/setup-java@v3
       with:
