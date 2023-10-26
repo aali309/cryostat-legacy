@@ -208,7 +208,7 @@ jobs:
       with:
         script: |
           const runURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${{ github.run_id }}`;
-          const commentBody = `\`**\build_test**\` completed successfully ✅. \n[View Actions Run](${runURL}).`;
+          const commentBody = `\`\\build_test\` completed successfully ✅. \n[View Actions Run](${runURL}).`;
           github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
@@ -225,7 +225,7 @@ jobs:
       with:
         script: |
           const runURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${{ github.run_id }}`;
-          const commentBody = `\`**\retest**\` Integration: All tests pass ✅. \n[View Actions Run](${runURL}).`;
+          const commentBody = `\`\\retest\` Integration: All tests pass ✅. \n[View Actions Run](${runURL}).`;
           github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
@@ -242,7 +242,7 @@ jobs:
       with:
         script: |
           const runURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${{ github.run_id }}`;
-          const commentBody = `\`**\build_test**\` : At least one test failed ❌. \n[View Actions Run](${runURL}).`;
+          const commentBody = `\`\\build_test\` : At least one test failed ❌. \n[View Actions Run](${runURL}).`;
           github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
@@ -259,7 +259,7 @@ jobs:
       with:
         script: |
           const runURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${{ github.run_id }}`;
-          const commentBody = `\`**\retest**\` Integration: At least one test failed ❌. \n[View Actions Run](${runURL}).`;
+          const commentBody = `\`\\retest\` Integration: At least one test failed ❌. \n[View Actions Run](${runURL}).`;
           github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
