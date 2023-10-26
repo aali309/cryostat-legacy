@@ -232,3 +232,37 @@ jobs:
             repo: context.repo.repo,
             body: commentBody
             });
+  
+  comment-integration-test-fail:
+    if: (always() && contains(needs.*.result, 'failure'))
+    needs: [integration-test]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/github-script@v6
+      with:
+        script: |
+          const runURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${{ github.run_id }}`;
+          const commentBody = `retest Integration: At least one test failed ❌. \n[View Actions Run](${runURL}).`;
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: commentBody
+            });
+
+  comment-retest-integration-fail:
+    if: (always() && contains(needs.*.result, 'failure'))
+    needs: [retest-integration]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/github-script@v6
+      with:
+        script: |
+          const runURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${{ github.run_id }}`;
+          const commentBody = `retest Integration: At least one test failed ❌. \n[View Actions Run](${runURL}).`;
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: commentBody
+            });
