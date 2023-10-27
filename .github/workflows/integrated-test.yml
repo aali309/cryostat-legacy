@@ -75,3 +75,4 @@ jobs:
     - name: Print itest container logs
       if: failure()
       run: ls -1dt target/cryostat-*.server.log | head -n1 | xargs catyea
+#testing
