@@ -60,17 +60,19 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-    - uses: actions/cache@v3
-      with:
-        path: ~/.m2
-        key: ${{ runner.os }}-build-${{ hashFiles('**/pom.xml') }}
-        restore-keys: |
-          ${{ runner.os }}-build-
-          ${{ runner.os }}-
     - name: maven-settings
       uses: s4u/maven-settings-action@v2
       with:
-        githubServer: true
+        githubServer: false
+    - name: ghcr login
+      uses: redhat-actions/podman-login@v1
+      with:
+        registry: ghcr.io/${{ github.repository_owner }}
+        username: ${{ github.event.comment.user.login }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - uses: skjolber/maven-cache-github-action@v1
+      with:
+        step: restore
     - run: git submodule init
     - run: git submodule update
     - run: mvn -B -U -Dbuild.arch=${{ inputs.build-arch }} clean package
