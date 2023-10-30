@@ -84,7 +84,5 @@ jobs:
         registry: quay.io/cryostat
         username: cryostat+bot
         password: ${{ secrets.REGISTRY_PASSWORD }}
-      if: github.repository_owner == 'cryostatio'
     - name: Print image URL
       run: echo "Image pushed to ${{ steps.push-to-quay.outputs.registry-paths }}"
-      if: github.repository_owner == 'cryostatio'
