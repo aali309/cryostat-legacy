@@ -63,7 +63,7 @@ jobs:
     - name: maven-settings
       uses: s4u/maven-settings-action@v2
       with:
-        githubServer: false
+        githubServer: true
     - run: git submodule init
     - run: git submodule update
     - run: mvn -B -U -Dbuild.arch=${{ inputs.build-arch }} clean package
