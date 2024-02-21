@@ -15,6 +15,8 @@
  */
 package itest;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -307,10 +309,8 @@ public class CustomTargetsIT extends StandardSelfTest {
         @Test
         @Order(5)
         void shouldBeAbleToDeleteTarget()
-                        throws ExecutionException, InterruptedException {
+                        throws TimeoutException, ExecutionException, InterruptedException {
                 CompletableFuture<JsonArray> response3 = new CompletableFuture<>();
-                //String expectedConnectUrl = "service:jmx:rmi:///jndi/rmi://localhost:0/jmxrmi";
-
                 webClient
                                 .get("/api/v1/targets")
                                 .send(
@@ -324,11 +324,60 @@ public class CustomTargetsIT extends StandardSelfTest {
                 MatcherAssert.assertThat(body3, Matchers.notNullValue());
                 MatcherAssert.assertThat(body3.size(), Matchers.equalTo(2));
 
-                CountDownLatch latch = new CountDownLatch(1);
+                CountDownLatch latch = new CountDownLatch(2);
 
+                worker.submit(
+                                () -> {
+                                        try {
+                                                expectNotification("TargetJvmDiscovery", 5, TimeUnit.SECONDS)
+                                                                .thenAcceptAsync(
+                                                                                notification -> {
+                                                                                        JsonObject event = notification
+                                                                                                        .getJsonObject("message")
+                                                                                                        .getJsonObject("event");
+                                                                                        MatcherAssert.assertThat(
+                                                                                                        event.getString("kind"),
+                                                                                                        Matchers.equalTo(
+                                                                                                                        "LOST"));
+                                                                                        MatcherAssert.assertThat(
+                                                                                                        event.getJsonObject(
+                                                                                                                        "serviceRef")
+                                                                                                                        .getString("connectUrl"),
+                                                                                                        Matchers.equalTo(
+                                                                                                                        "service:jmx:rmi:///jndi/rmi://localhost:0/jmxrmi"));
+                                                                                        MatcherAssert.assertThat(
+                                                                                                        event.getJsonObject(
+                                                                                                                        "serviceRef")
+                                                                                                                        .getString("alias"),
+                                                                                                        Matchers.equalTo(
+                                                                                                                        "self"));
+                                                                                        latch.countDown();
+                                                                                })
+                                                                .get();
+                                        } catch (Exception e) {
+                                                throw new RuntimeException(e);
+                                        }
+                                });
+                CompletableFuture<JsonArray> response1 = new CompletableFuture<>();
+                webClient
+                                .get("/api/v1/targets")
+                                .send(
+                                                ar -> {
+                                                        assertRequestStatus(ar, response1);
+                                                        response1.complete(ar.result().bodyAsJsonArray());
+                                                        latch.countDown();
+                                                });
+                JsonArray body1 = response1.get();
+                System.out.println("+++body1 "+ body1.encodePrettily());
+                System.out.println("+++ size1 "+ body1.size());
+                MatcherAssert.assertThat(body1, Matchers.notNullValue());
+                MatcherAssert.assertThat(body1.size(), Matchers.equalTo(2));
+                
+                String jmxServiceUrl = "service:jmx:rmi:///jndi/rmi://localhost:0/jmxrmi";
+                String encodedUrl = URLEncoder.encode(jmxServiceUrl, StandardCharsets.UTF_8);
                 CompletableFuture<JsonObject> response = new CompletableFuture<>();
                 webClient
-                                .delete("/api/v2/targets/:service:jmx:rmi:///jndi/rmi://localhost:0/jmxrmi")
+                                .delete("/api/v2/targets/" + encodedUrl)
                                 .send(
                                                 ar -> {
                                                         assertRequestStatus(ar, response);
@@ -344,7 +393,7 @@ public class CustomTargetsIT extends StandardSelfTest {
                                 .send(
                                                 ar -> {
                                                         assertRequestStatus(ar, response2);
-                                                        response2.complete(ar.result().bodyAsJsonArray());
+                                                        response1.complete(ar.result().bodyAsJsonArray());
                                                 });
                 JsonArray body2 = response2.get();
                 System.out.println("+++body2 after delete "+ body2.encodePrettily());
